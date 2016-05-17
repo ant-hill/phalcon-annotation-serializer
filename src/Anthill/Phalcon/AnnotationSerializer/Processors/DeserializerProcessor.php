@@ -26,6 +26,7 @@ class DeserializerProcessor extends PropertyProcessor
         $this->setter($property, $propertyName, $annotation->getArgument('getter'));
         $this->groups($property, $annotation->getArgument('groups'));
         $this->type($property, $annotation->getArgument('type'));
+        $this->typeArguments($property, $annotation->getArgument('type_arguments'));
         $this->name($property, $annotation->getArgument('name'), $annotation->getArgument(0), $propertyName);
 
         return $property;

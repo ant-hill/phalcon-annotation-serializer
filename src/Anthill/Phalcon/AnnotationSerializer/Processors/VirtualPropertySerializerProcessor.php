@@ -24,6 +24,7 @@ class VirtualPropertySerializerProcessor extends PropertyProcessor
         $this->getter($property, null, $propertyName);
         $this->groups($property, $annotation->getArgument('groups'));
         $this->type($property, $annotation->getArgument('type'));
+        $this->typeArguments($property, $annotation->getArgument('type_arguments'));
         $property->setName($annotation->getArgument('name'));
 
         return $property;

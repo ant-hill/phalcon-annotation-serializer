@@ -25,7 +25,7 @@ class GetterStructure
             return;
         }
 
-        if($this->addGetter($property)){
+        if ($this->addGetter($property)) {
             $this->addGroups($property->getGroups(), $property->getName());
         }
     }
@@ -39,7 +39,9 @@ class GetterStructure
             return false;
         }
         $data = GetterNormalizeStructure::create();
-        $data->setType($property->getType())->setField($getter);
+        $data->setType($property->getType());
+        $data->setTypeArguments($property->getTypeArguments());
+        $data->setField($getter);
         $this->getters[$idx] = $data;
         return true;
     }

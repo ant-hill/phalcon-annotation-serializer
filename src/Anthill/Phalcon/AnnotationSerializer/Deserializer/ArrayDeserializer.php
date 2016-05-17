@@ -7,6 +7,7 @@ use Anthill\Phalcon\AnnotationSerializer\Deserializer\Exceptions\DeserializeExce
 use Anthill\Phalcon\AnnotationSerializer\Normalizers\Getter\GetterGroupNormalizeStructure;
 use Anthill\Phalcon\AnnotationSerializer\Normalizers\Setter\SetterStructure;
 use Anthill\Phalcon\AnnotationSerializer\Structures\Field;
+use Anthill\Phalcon\AnnotationSerializer\Types\TypeManager;
 
 class ArrayDeserializer implements DeserializeInterface
 {
@@ -15,10 +16,15 @@ class ArrayDeserializer implements DeserializeInterface
      * @var SetterStructure
      */
     private $structure;
+    /**
+     * @var TypeManager
+     */
+    private $converterManager;
 
-    public function __construct(SetterStructure $structure)
+    public function __construct(SetterStructure $structure, TypeManager $typeManager)
     {
         $this->structure = $structure;
+        $this->converterManager = $typeManager;
     }
 
     private function getGroupsFields(array $groups = array())
@@ -45,6 +51,7 @@ class ArrayDeserializer implements DeserializeInterface
 
     /**
      * @param $object
+     * @param array $data
      * @param array $fields
      * @return array
      */
@@ -52,24 +59,28 @@ class ArrayDeserializer implements DeserializeInterface
     {
         $entity = clone $object;
         $structure = $this->structure;
-        $closure = function ($field, $value) use ($structure) {
-            $getter = $structure->getGetterByField($field);
-            $field = $getter->getField();
+        $converterManager = $this->converterManager;
+        $closure = function ($field, $value) use ($structure,$converterManager) {
+            $setter = $structure->getSetterByField($field);
+
+            $converterType = $setter->getType();
+            if($converterType && $converterManager->has($converterType)){
+                $value = $converterManager->from($converterType,$value,$setter->getTypeArguments());
+            }
+            
+            $field = $setter->getField();
             $fieldName = $field->getName();
             if ($field->getType() === Field::TYPE_METHOD) {
                 if (!method_exists($this, $fieldName)) {
                     return;
                 }
                 $this->{$fieldName}($value);
-            }
-
-            if ($field->getType() === Field::TYPE_PROPERTY) {
+            } elseif ($field->getType() === Field::TYPE_PROPERTY) {
                 if (!property_exists($this, $fieldName)) {
                     return;
                 }
                 $this->{$fieldName} = $value;
             }
-            return;
         };
         $closure = $closure->bindTo($entity, $entity);
 

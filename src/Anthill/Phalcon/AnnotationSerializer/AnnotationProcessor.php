@@ -52,12 +52,50 @@ class AnnotationProcessor
      */
     public function process($className)
     {
-        $propertyProcessors = $this->getPropertyProcessors();
-        $methodProcessors = $this->getMethodProcessors();
         $reflector = $this->reader->get($className);
-        $propertiesAnnotations = $reflector->getPropertiesAnnotations();
-
         $structs = [];
+        $this->populateByProperties($reflector->getPropertiesAnnotations(), $structs);
+
+        $this->populateByMethods($reflector->getMethodsAnnotations(), $structs);
+        return $structs;
+    }
+
+    /**
+     * @param \Phalcon\Annotations\Collection[] $methodAnnotations
+     * @param array $structs
+     */
+    private function populateByMethods($methodAnnotations, &$structs)
+    {
+        if (!$methodAnnotations) {
+            return;
+        }
+
+        $methodProcessors = $this->getMethodProcessors();
+        foreach ($methodAnnotations as $propertyName => $propertyAnnotations) {
+            $annotations = $propertyAnnotations->getAnnotations();
+            foreach ($annotations as $annotation) {
+                $name = $annotation->getName();
+                if (!array_key_exists($name, $methodProcessors)) {
+                    continue;
+                }
+                /* @var $processor ProcessorInterface */
+                $processor = $methodProcessors[$name];
+                $structs[] = $processor->process($propertyName, $annotation);
+            }
+        }
+    }
+
+    /**
+     * @param \Phalcon\Annotations\Collection[]|bool $propertiesAnnotations
+     * @param array $structs
+     */
+    private function populateByProperties($propertiesAnnotations, &$structs)
+    {
+        if (!$propertiesAnnotations) {
+            return;
+        }
+
+        $propertyProcessors = $this->getPropertyProcessors();
 
         foreach ($propertiesAnnotations as $propertyName => $propertyAnnotations) {
             $annotations = $propertyAnnotations->getAnnotations();
@@ -71,21 +109,5 @@ class AnnotationProcessor
                 $structs[] = $processor->process($propertyName, $annotation);
             }
         }
-
-        $methodAnnotations = $reflector->getMethodsAnnotations();
-        foreach ($methodAnnotations as $propertyName => $propertyAnnotations) {
-            $annotations = $propertyAnnotations->getAnnotations();
-            foreach ($annotations as $annotation) {
-                $name = $annotation->getName();
-                if (!array_key_exists($name, $methodProcessors)) {
-                    continue;
-                }
-                /* @var $processor ProcessorInterface */
-                $processor = $methodProcessors[$name];
-                $structs[] = $processor->process($propertyName, $annotation);
-            }
-        }
-        return $structs;
     }
-
 }

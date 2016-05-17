@@ -9,7 +9,7 @@ use Anthill\Phalcon\AnnotationSerializer\Serializer\Exceptions\SerializeExceptio
 use Anthill\Phalcon\AnnotationSerializer\Structures\Field;
 use Anthill\Phalcon\AnnotationSerializer\Types\TypeManager;
 
-class JsonSerializer implements SerializeInterface
+class ArraySerializer implements SerializeInterface
 {
 
     /**
@@ -19,12 +19,12 @@ class JsonSerializer implements SerializeInterface
     /**
      * @var TypeManager
      */
-    private $typeManager;
+    private $converterManager;
 
-    public function __construct(GetterStructure $structure,TypeManager $typeManager)
+    public function __construct(GetterStructure $structure, TypeManager $typeManager)
     {
         $this->structure = $structure;
-        $this->typeManager = $typeManager;
+        $this->converterManager = $typeManager;
     }
 
     /**
@@ -44,16 +44,13 @@ class JsonSerializer implements SerializeInterface
             $fields = $this->getGroupsFields($groups);
         }
 
-        $result = $this->doSerialize($object, $fields);
-
-        if (!$result) {
-            // we want to send object if result is empty
-            return '{}';
-        }
-        return json_encode($result);
+        return $this->doSerialize($object, $fields);
     }
 
-
+    /**
+     * @param array $groups
+     * @return mixed
+     */
     private function getGroupsFields(array $groups = array())
     {
         $groupMerge = new GetterGroupNormalizeStructure();
@@ -84,22 +81,39 @@ class JsonSerializer implements SerializeInterface
     private function doSerialize($object, array $fields)
     {
         $structure = $this->structure;
-        $closure = function ($field) use ($structure) {
+        $converterManager = $this->converterManager;
+        $closure = function ($field) use ($structure, $converterManager) {
             $getter = $structure->getGetterByField($field);
             $field = $getter->getField();
             $fieldName = $field->getName();
+
+            $converterType = $getter->getType();
+            $needConvert = false;
+            if ($converterType && $converterManager->has($converterType)) {
+                $needConvert = true;
+            }
+
             if ($field->getType() === Field::TYPE_METHOD) {
                 if (!method_exists($this, $fieldName)) {
                     return null;
                 }
-                return $this->{$fieldName}();
+
+                $value = $this->{$fieldName}();
+                if ($needConvert) {
+                    $value = $converterManager->to($converterType, $value, $getter->getTypeArguments());
+                }
+                return $value;
             }
 
             if ($field->getType() === Field::TYPE_PROPERTY) {
                 if (!property_exists($this, $fieldName)) {
                     return null;
                 }
-                return $this->{$fieldName};
+                $value = $this->{$fieldName};
+                if ($needConvert) {
+                    $value = $converterManager->to($converterType, $value, $getter->getTypeArguments());
+                }
+                return $value;
             }
             return null;
         };

@@ -35,7 +35,9 @@ class SetterStructure
             return false;
         }
         $data = SetterNormalizeStructure::create();
-        $data->setType($property->getType())->setField($setter);
+        $data->setType($property->getType());
+        $data->setTypeArguments($property->getTypeArguments());
+        $data->setField($setter);
         $this->setters[$idx] = $data;
         return true;
     }
@@ -101,7 +103,7 @@ class SetterStructure
      * @param $field
      * @return SetterNormalizeStructure
      */
-    public function getGetterByField($field)
+    public function getSetterByField($field)
     {
         return $this->setters[$field];
     }

@@ -8,6 +8,7 @@ use Anthill\Phalcon\AnnotationSerializer\Structures\Field;
 class GetterNormalizeStructure
 {
     private $type;
+    private $typeArguments = array();
 
     /**
      * @var Field
@@ -47,6 +48,24 @@ class GetterNormalizeStructure
     public function setField(Field $field)
     {
         $this->field = $field;
+        return $this;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getTypeArguments()
+    {
+        return $this->typeArguments;
+    }
+
+    /**
+     * @param mixed $typeArguments
+     * @return GetterNormalizeStructure
+     */
+    public function setTypeArguments($typeArguments)
+    {
+        $this->typeArguments = $typeArguments;
         return $this;
     }
 

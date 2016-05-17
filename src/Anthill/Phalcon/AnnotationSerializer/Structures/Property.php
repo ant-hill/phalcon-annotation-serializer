@@ -8,6 +8,7 @@ class Property
     private $setter;
     private $name;
     private $type;
+    private $typeArguments;
     private $groups;
 
     /**
@@ -72,6 +73,24 @@ class Property
     public function setType($type)
     {
         $this->type = $type;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getTypeArguments()
+    {
+        return $this->typeArguments;
+    }
+
+    /**
+     * @param mixed $typeArguments
+     * @return Property
+     */
+    public function setTypeArguments($typeArguments)
+    {
+        $this->typeArguments = $typeArguments;
+        return $this;
     }
 
     /**

@@ -28,6 +28,7 @@ class PropertyProcessor implements ProcessorInterface
         $this->getter($property, $propertyName, $annotation->getArgument('getter'));
         $this->groups($property, $annotation->getArgument('groups'));
         $this->type($property, $annotation->getArgument('type'));
+        $this->typeArguments($property, $annotation->getArgument('type_arguments'));
         $this->name($property, $annotation->getArgument('name'), $annotation->getArgument(0), $propertyName);
 
         return $property;
@@ -74,6 +75,15 @@ class PropertyProcessor implements ProcessorInterface
         if ($type) {
             $property->setType($type);
         }
+    }
+
+    protected function typeArguments(Property $property, $propertyArguments)
+    {
+        if (!$propertyArguments) {
+            $property->setTypeArguments([]);
+            return;
+        }
+        $property->setTypeArguments($propertyArguments);
     }
 
     protected function getter(Property $property, $name, $getter)

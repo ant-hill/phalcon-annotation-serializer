@@ -9,6 +9,8 @@ class SetterNormalizeStructure
 {
     private $type;
 
+    private $typeArguments = array();
+
     /**
      * @var Field
      */
@@ -47,6 +49,24 @@ class SetterNormalizeStructure
     public function setField(Field $field)
     {
         $this->field = $field;
+        return $this;
+    }
+
+    /**
+     * @return array
+     */
+    public function getTypeArguments()
+    {
+        return $this->typeArguments;
+    }
+
+    /**
+     * @param array $typeArguments
+     * @return SetterNormalizeStructure
+     */
+    public function setTypeArguments($typeArguments)
+    {
+        $this->typeArguments = $typeArguments;
         return $this;
     }
 
